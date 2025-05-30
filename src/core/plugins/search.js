@@ -241,6 +241,53 @@ class Search {
 			dispatch(tr);
 		}
 	}
+
+	convertSearchResultsToHighlights() {
+		if (!this.results || this.results.length === 0) {
+			console.log('No search results to convert');
+			return;
+		}
+
+		let { state, dispatch } = this.view;
+		let tr = state.tr;
+		
+		// Default highlight color (yellow)
+		const highlightColor = '#ffff00';
+		
+		// Convert results in reverse order to maintain correct positions
+		const sortedResults = [...this.results].sort((a, b) => b.from - a.from);
+		
+		for (let result of sortedResults) {
+			if (result.isCitation) {
+				// Skip citations
+				continue;
+			}
+			
+			try {
+				// Get the text content from the result range
+				const textContent = tr.doc.textBetween(result.from, result.to);
+				
+				// Create a highlight node
+				const highlightNode = schema.nodes.highlight.create(
+					{ color: highlightColor },
+					schema.text(textContent)
+				);
+				
+				// Replace the text with a highlight
+				tr.replaceWith(result.from, result.to, highlightNode);
+			} catch (error) {
+				console.error('Error converting search result to highlight:', error);
+			}
+		}
+		
+		if (tr.docChanged) {
+			dispatch(tr);
+			console.log(`Converted ${sortedResults.length} search results to permanent highlights`);
+			
+			// Clear search after conversion
+			this.setActive(false);
+		}
+	}
 }
 
 export let searchKey = new PluginKey('search');

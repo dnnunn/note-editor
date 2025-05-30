@@ -11,6 +11,7 @@ import IconLink from '../../res/icons/20/link.svg';
 import IconMore from '../../res/icons/20/options.svg';
 import IconRemoveFormatting from '../../res/icons/20/clear-format.svg';
 import IconSearch from '../../res/icons/20/magnifier.svg';
+import IconPlus from '../../res/icons/20/plus.svg';
 
 import AlignDropdown from './toolbar-elements/align-dropdown';
 import Dropdown from './toolbar-elements/dropdown';
@@ -58,6 +59,15 @@ function Toolbar({ viewMode, enableReturnButton, textColorState, highlightColorS
 			candidateNodes?.[lastFocusedIndex.current].focus();
 		}
 	}, [viewMode, getCandidateNodes]);
+
+	const handleMakeHighlightsPermanent = useCallback(() => {
+		if (searchState.active && searchState.results && searchState.results.length > 0) {
+			searchState.convertSearchResultsToHighlights();
+		}
+	}, [searchState]);
+
+	const isSearchActive = searchState.active;
+	const hasSearchResults = searchState.results && searchState.results.length > 0;
 
 	return (
 		<div
@@ -109,6 +119,15 @@ function Toolbar({ viewMode, enableReturnButton, textColorState, highlightColorS
 					icon={<IconSearch/>}
 					title={intl.formatMessage({ id: 'noteEditor.findAndReplace' })}
 				/>
+				{isSearchActive && (
+					<Button
+						icon={<IconPlus/>}
+						title={intl.formatMessage({ id: 'noteEditor.makeHighlightsPermanent', defaultMessage: 'Make highlights permanent' })}
+						onClick={handleMakeHighlightsPermanent}
+						disabled={!hasSearchResults}
+						className={hasSearchResults ? 'highlight-permanent-active' : 'highlight-permanent-disabled'}
+					/>
+				)}
 			</div>
 			<div className="end">
 				{!['ios', 'web'].includes(viewMode) && <Dropdown
